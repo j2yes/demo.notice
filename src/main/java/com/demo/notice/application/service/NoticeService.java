@@ -71,7 +71,7 @@ public class NoticeService implements CreateNoticeUseCase, UpdateNoticeUseCase, 
     List<Attachment> allAttachments = attachmentPersistencePort.findAllByNotice(notice);
     notice.composeAttachments(allAttachments);
 
-    long viewCount = countCachePort.incrementAndGet(NOTICE_VIEW_COUNT_CACHE_PREFIX, id.toString());
+    long viewCount = countCachePort.get(NOTICE_VIEW_COUNT_CACHE_PREFIX, id.toString());
     notice.resetViewCount(viewCount);
 
     return notice;
