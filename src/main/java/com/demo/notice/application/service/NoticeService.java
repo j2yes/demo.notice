@@ -68,7 +68,11 @@ public class NoticeService implements CreateNoticeUseCase, UpdateNoticeUseCase, 
       attachments.add(attachment);
     });
     attachmentPersistencePort.saveAll(attachments);
-    notice.composeAttachments(attachments);
+    List<Attachment> allAttachments = attachmentPersistencePort.findAllByNotice(notice);
+    notice.composeAttachments(allAttachments);
+
+    long viewCount = countCachePort.incrementAndGet(NOTICE_VIEW_COUNT_CACHE_PREFIX, id.toString());
+    notice.resetViewCount(viewCount);
 
     return notice;
   }
@@ -92,9 +96,9 @@ public class NoticeService implements CreateNoticeUseCase, UpdateNoticeUseCase, 
 
   @Override
   public Notice detail(UUID id) {
-    long viewCount = countCachePort.incrementAndGet(NOTICE_VIEW_COUNT_CACHE_PREFIX, id.toString());
     Notice notice = noticePersistencePort.findById(id)
         .orElseThrow(() -> new ResourceNotFoundException(NOTICE_NOT_FOUND));
+    long viewCount = countCachePort.incrementAndGet(NOTICE_VIEW_COUNT_CACHE_PREFIX, id.toString());
     notice.resetViewCount(viewCount + 1);
 
     List<Attachment> attachments = attachmentPersistencePort.findAllByNotice(notice);
